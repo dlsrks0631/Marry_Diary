@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Marryiary',
-      theme: ThemeData(primarySwatch: Colors.purple),
+      theme: ThemeData(primaryColor: Colors.white),
       home: const HomeScreen(), // 앱의 첫 화면을 HomeScreen으로 지정
     );
   }
