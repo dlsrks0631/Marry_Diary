@@ -12,7 +12,7 @@ class ReviewBoardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review Board'),
+        title: const Text('자유 게시판'),
       ),
       body: const Center(
         // 게시물 목록을 보여주는 UI
@@ -28,21 +28,6 @@ class ReviewBoardScreen extends StatelessWidget {
         },
         child: const Icon(Icons.add),
       ),
-      // 자유 게시판 바로가기 버튼
-      persistentFooterButtons: [
-        ElevatedButton(
-          onPressed: () {
-            // 자유 게시판으로 이동하는 코드 작성
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const ReviewBoard(isSecretBoard: false)),
-            );
-          },
-          child: const Text('자유 게시판 바로가기'),
-        ),
-      ],
     );
   }
 }
