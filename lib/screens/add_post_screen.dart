@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:multiple_images_picker/multiple_images_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({Key? key}) : super(key: key);
@@ -9,27 +11,20 @@ class AddPostScreen extends StatefulWidget {
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
-  List<Asset> _pickedImages = [];
+  File? _pickedImage;
   String _userText = '';
+  double _rating = 0;
 
   // 사진 선택을 위한 메서드
-  Future<void> _pickImages() async {
-    List<Asset> pickedImages = [];
-    try {
-      pickedImages = await MultipleImagesPicker.pickImages(
-        maxImages: 5, // 최대 선택 가능한 이미지 수 (여기서는 최대 5개)
-        enableCamera: true, // 카메라 사용 여부
-      );
-    } on Exception catch (e) {
-      // 에러 처리
-      print('Error while picking images: $e');
+  Future<void> _pickImage() async {
+    final pickedImageFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pickedImageFile != null) {
+      setState(() {
+        _pickedImage = File(pickedImageFile.path);
+      });
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      _pickedImages = pickedImages;
-    });
   }
 
   // 글 작성 폼을 업데이트하는 메서드
@@ -39,14 +34,16 @@ class _AddPostScreenState extends State<AddPostScreen> {
     });
   }
 
+  // 게시 버튼을 눌렀을 때 호출되는 메서드
   void _postButtonPressed() {
-    if (_pickedImages.isEmpty || _userText.isEmpty) {
+    if (_pickedImage == null || _userText.isEmpty) {
       // 이미지 또는 텍스트가 비어있는 경우 게시 처리하지 않음
       return;
     }
 
+    // TODO: 게시물 정보를 저장하는 코드 추가 (예시로 더미 데이터 사용)
     final postInfo = {
-      'images': _pickedImages,
+      'imagePath': _pickedImage!.path,
       'text': _userText,
     };
 
@@ -59,29 +56,60 @@ class _AddPostScreenState extends State<AddPostScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Post'),
+        backgroundColor: Colors.black,
+        toolbarTextStyle: Theme.of(context)
+            .textTheme
+            .copyWith(
+              titleLarge: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+            .bodyMedium,
+        titleTextStyle: Theme.of(context)
+            .textTheme
+            .copyWith(
+              titleLarge: const TextStyle(
+                color: Colors.white, // App bar title text color (black)
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+            .titleLarge,
       ),
-      body: Center(
-        // 게시물 추가 화면의 UI 구성
-        child: SingleChildScrollView(
+      body: Container(
+        color: const Color(0xFFFFFFFF), // Background color (#ffffff)
+        child: Center(
+          // 게시물 추가 화면의 UI 구성
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 이미지 또는 'No Images Selected' 텍스트를 표시합니다.
-              _pickedImages.isEmpty
-                  ? const Text('No Images Selected')
-                  : Column(
-                      children: [
-                        for (var asset in _pickedImages)
-                          AssetThumb(
-                            asset: asset,
-                            width: 200,
-                            height: 200,
-                          ),
-                      ],
+              // Add condition to display Container only when there is an image selected
+              if (_pickedImage != null)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0),
+                    border: Border.all(color: Colors.black, width: 2),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Image.network(
+                      _pickedImage!.path,
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.cover,
                     ),
+                  ),
+                ),
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _pickImages,
-                child: const Text('Select Images'),
+                onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  textStyle: const TextStyle(
+                      color: Colors.red), // Button text color (black)
+                ),
+                child: const Text('Select Image'),
               ),
               const SizedBox(height: 20),
               Padding(
@@ -89,14 +117,118 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 child: TextField(
                   onChanged: _updateUserText,
                   maxLines: 5,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(
+                      color: Colors.black, fontSize: 16), // Text style
+                  decoration: InputDecoration(
                     hintText: 'Write your post here...',
-                    border: OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12), // Padding inside the TextField
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10), // Rounded border
+                      borderSide:
+                          const BorderSide(color: Colors.black), // Border color
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                          color: Colors
+                              .black), // Border color when the TextField is focused
+                    ),
+                    filled: true,
+                    fillColor:
+                        Colors.white, // Background color of the TextField
                   ),
                 ),
               ),
+              Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  ),
+                  const Icon(
+                    Icons.add_location,
+                    color: Colors.black, // Icon color (blue)
+                    size: 30, // Icon size
+                  ),
+                  const SizedBox(
+                      width: 8), // Add some spacing between the icon and text
+                  TextButton(
+                    onPressed: () {
+                      // 위치 추가 버튼 시 실행할 동작
+                      print("위치 생성");
+                    },
+                    child: const Text(
+                      "위치 추가",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Text color (blue)
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  ),
+                  const Icon(
+                    Icons.tag,
+                    color: Colors.black, // Icon color (blue)
+                    size: 30, // Icon size
+                  ),
+                  const SizedBox(width: 8.0),
+                  TextButton(
+                    onPressed: () {
+                      print("태그 생성");
+                    },
+                    child: const Text(
+                      "태그 추가",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Text color (blue)
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              // 별점 입력 부분 추가
+              RatingBar.builder(
+                initialRating: _rating,
+                minRating: 0,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                itemBuilder: (context, _) => const Icon(
+                  Icons.favorite, // Use heart-shaped icon here
+                  color: Colors
+                      .yellow, // You can change the heart color as desired
+                ),
+                onRatingUpdate: (rating) {
+                  setState(() {
+                    _rating = rating;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _postButtonPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Colors.black, // Button background color (black)
+                  textStyle: const TextStyle(
+                      color: Colors.white), // Button text color (white)
+                ),
                 child: const Text('Post'),
               ),
             ],

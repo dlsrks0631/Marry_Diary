@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'add_post_screen.dart';
 
 class ReviewBoardScreen extends StatefulWidget {
-  final bool isSecretBoard; // isSecretBoard 변수 추가
+  final bool isSecretBoard;
 
   const ReviewBoardScreen({required this.isSecretBoard, Key? key})
       : super(key: key);
@@ -28,7 +28,7 @@ class _ReviewBoardScreenState extends State<ReviewBoardScreen> {
         title: const Text('Review'),
         backgroundColor: Colors.white,
         titleTextStyle: const TextStyle(
-            color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
+            color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         automaticallyImplyLeading: false,
         actions: [
           Padding(
@@ -46,21 +46,20 @@ class _ReviewBoardScreenState extends State<ReviewBoardScreen> {
       ),
       body: ReviewBoard(isSecretBoard: widget.isSecretBoard, posts: _posts),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Add async keyword
+        onPressed: () {
           // 게시물 추가 화면으로 이동
-          final postInfo = await Navigator.push(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const AddPostScreen(),
             ),
-          );
-
-          // AddPostScreen에서 게시물 추가를 완료한 후, 이전 화면으로 돌아올 때 실행될 콜백 함수
-          if (postInfo != null) {
-            // 게시물 정보가 전달된 경우
-            _addPost(postInfo); // 게시물 추가
-          }
+          ).then((postInfo) {
+            // AddPostScreen에서 게시물 추가를 완료한 후, 이전 화면으로 돌아올 때 실행될 콜백 함수
+            if (postInfo != null) {
+              // 게시물 정보가 전달된 경우
+              _addPost(postInfo); // 게시물 추가
+            }
+          });
         },
         child: const Icon(Icons.add),
       ),
@@ -81,6 +80,7 @@ class ReviewBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
@@ -89,25 +89,36 @@ class ReviewBoard extends StatelessWidget {
           final String text = post['text'];
 
           return Card(
-            margin: const EdgeInsets.all(8.0),
+            margin: const EdgeInsets.all(30.0),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  imagePath.isEmpty
-                      ? const SizedBox() // 이미지가 없는 경우 아무것도 표시하지 않음
-                      : Image.network(
-                          // 이미지가 있는 경우
+                  // Image on the left side with rounded corners and spacing
+                  if (imagePath.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 30.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.network(
                           imagePath,
-                          width: 200,
-                          height: 200,
-                          fit: BoxFit.cover,
+                          width: 200, // Reduce image size to 100
+                          height: 200, // Reduce image size to 100
+                          fit:
+                              BoxFit.fitWidth, // Adjust image size to fit width
                         ),
-                  const SizedBox(height: 10),
-                  Text(
-                    text,
-                    style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  // Text on the right side
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 40.0),
+                      child: Text(
+                        text,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ),
                 ],
               ),
