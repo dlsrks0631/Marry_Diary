@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'review_board.dart'; 
+import 'review_board_screen.dart';
+import 'couple_story_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,11 +20,15 @@ class HomeScreen extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: '홈',
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.heat_pump_rounded),
+            label: "Story",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.forum),
-            label: '자유 게시판',
+            label: 'Reviews',
           ),
         ],
         onTap: (index) {
@@ -31,6 +36,12 @@ class HomeScreen extends StatelessWidget {
             // 홈으로 이동하는 코드 작성
             // 여기에 홈으로 이동하는 코드를 작성하
           } else if (index == 1) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const CoupleStory(isSecretBoard: true)));
+          } else if (index == 2) {
             // 자유 게시판으로 이동하는 코드 작성
             Navigator.push(
               context,
